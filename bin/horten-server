@@ -1,0 +1,63 @@
+#!/bin/sh
+':' //; exec "$(command -v nodejs || command -v node)" "$0" "$@"
+
+const _ = require('lodash')
+    , yaml = require('js-yaml')
+    , argparse = require('argparse')
+    , pkg = require('../package.json')
+    , parser = new argparse.ArgumentParser({
+        version: pkg.version,
+        addHelp: true,
+      })
+
+parser.addArgument(
+  ['-f', '--persist'],
+  {
+    help: "Persist to file.",
+  }
+)
+
+parser.addArgument(
+  ['--http'],
+  {
+    dest: 'listen',
+    help: "Listen on port.",
+    defaultValue: '4000'
+  }
+)
+
+parser.addArgument(
+  ['--load'],
+  {
+    help: "Load data from file.",
+    nargs: '+'
+  }
+)
+
+parser.addArgument(
+  ['--page'],
+  {
+    dest: 'pageDir',
+    help: "Directories from which to load control pages.",
+    nargs: '+'
+  }
+)
+
+
+const opt = parser.parseArgs()
+
+const HortenServer = require('../src/HortenServer')
+
+const server = new HortenServer( opt )
+
+server.open()
+.then( () => {
+  const app = server.app
+  app.use('/', ( req, res ) => server.render('main', req, res ) )
+})
+
+//
+//
+
+//
+// server.listen( 4000 )

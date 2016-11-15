@@ -1,0 +1,13 @@
+<div id='page'></div>
+<script>
+  let React = require('react')
+    , ReactDOM = require('react-dom')
+    , HortenControl = require('horten-control')
+    , control = {{{ contronJSON }}}
+
+  ReactDOM.render(
+    React.createElement( HortenControl, control ),
+    document.getElementById('page')
+  )
+
+</script>
