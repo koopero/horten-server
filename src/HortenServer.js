@@ -115,7 +115,7 @@ class HortenServer extends EventEmitter {
       })
       .then( function () {
         if ( control ) {
-          res.render('page', { contronJSON: JSON.stringify( control ), layout: 'main' } )
+          res.render('page', { controlJSON: JSON.stringify( control ), layout: 'main' } )
         } else {
           next()
         }
@@ -124,7 +124,8 @@ class HortenServer extends EventEmitter {
   }
 
   renderPage( pageName, req, res ) {
-    res.send('hello')
+    res.json( pages )
+    res.render('page', { layout: 'main'} )
   }
 }
 

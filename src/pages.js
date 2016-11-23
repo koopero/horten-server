@@ -12,7 +12,7 @@ function pages( { dirs } ) {
 
   return Promise.resolve( dirs )
   .map( loadDir )
-  console.log( dirs )
+  // console.log( dirs )
 }
 
 

@@ -52,8 +52,7 @@ const server = new HortenServer( opt )
 
 server.open()
 .then( () => {
-  const app = server.app
-  app.use('/', ( req, res ) => server.render('main', req, res ) )
+
 })
 
 //
