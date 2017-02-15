@@ -1,4 +1,7 @@
-const EventEmitter = require('events')
+const _ = require('lodash')
+    , H = require('horten')
+    , Promise = require('bluebird')
+    , EventEmitter = require('events')
     , fs = require('fs-extra-promise')
     , path = require('path')
     , Yaml = require('js-yaml')
@@ -14,7 +17,38 @@ class HortenServer extends EventEmitter {
   constructor( opt ) {
     super()
     this.options = opt || {}
-    this.applyOptions( this.options )
+    this.configuration = {
+      listen: 7004,
+      persist: null,
+      index: null,
+      load: [],
+      files: [],
+      require: []
+    }
+
+    this.cursor = new H.Cursor()
+
+    this.configure( opt )
+  }
+
+  configure( opt ) {
+    const config = this.configuration
+
+    if ( opt )
+      _.map( config, ( value, key ) => {
+        var newValue = opt[key]
+
+        if ( newValue == undefined )
+          return
+
+        if ( Array.isArray( value ) )
+          value = value.concat( newValue )
+        else
+          value = newValue
+
+        config[key] = value
+      })
+    console.log('configure', opt, this.configuration )
   }
 
   applyOptions( opt ) {
@@ -26,107 +60,88 @@ class HortenServer extends EventEmitter {
     }
 
     if ( opt.file ) {
-      this.persistance = new HortenPersistFile({
-        file: opt.file,
-        open: true,
-        listening: true
-      })
+
     }
   }
 
   open() {
-    this.getApp()
+    const config = this.configuration
 
-    const port = this.options.listen || 4000
+    if ( !config.root )
+      config.root = process.cwd()
+
+    if ( config.index )
+      config.files.push( config.index )
 
 
-    return this.websocket.listen( port )
+    this.openExpress()
 
+    var promise = Promise.resolve()
+    promise = promise.then( () => this.openPersist() )
+    if ( config.listen )
+      promise = promise.then( () => this.websocket.listen( config.listen ) )
+
+    promise = promise.then( () => this.openRequire() )
+
+
+    return promise
   }
 
-  getApp() {
-    if ( this.app )
-      return this.app
-
-    const HortenWebsocket = require('horten-websocket')
-        , NS = HortenWebsocket.NS
-        , Logger = HortenWebsocket.Logger
-        , Server = HortenWebsocket.Server
-
-
-    this.websocket = new Server()
-    this.websocket[ NS.verbose ] = true
-    this.app = this.websocket.middleWare()
-    this.logger = new Logger()
-    this.logger.target = this.websocket
-    this.addViews()
-
-    return this.app
+  resolveFile() {
+    const config = this.configuration
+    config.dir = config.dir || process.cwd()
+    return path.resolve.bind( null, config.dir ).apply( null, arguments )
   }
 
-  addViews() {
-    const self = this
-    const express = require('express')
-    const exphbs = require('express-handlebars')
-    const horten_control = require('horten-control')
-
-    const hbs = exphbs.create({
-      extname: '.hbs',
-      layoutsDir: resolveModule('views', 'layouts')
-    })
-
-    self.app.engine('.hbs', hbs.engine);
-    self.app.set('view engine', '.hbs');
-    self.app.set('views', resolveModule('views') )
-
-    self.app.use( '/horten-control/', express.static( horten_control.staticDir ) )
-
-    // self.app.get('/*.html', function ( req, res ) {
-    //   const key = req.params[0]
-    //
-    //   // res.json( { params: req.params })
-    //   res.render('page', { layout: 'main'} )
-    // })
+  openRequire() {
+    return Promise.map( this.configuration.require, ( req ) => {
+      req = this.resolveFile( req )
+      require( req )
+    } )
   }
 
-  addPageDir( dir ) {
-    const self = this
-    dir = path.resolve( dir )
-    console.log('addPageDir', dir )
+  openPersist() {
+    const config = this.configuration
 
-    const app = this.getApp()
-    self.app.get('/*.html', function ( req, res, next ) {
-      const key = req.params[0]
-
-      const mdFile = path.resolve( dir, `${key}.md` )
-      var control = null
-
-      fs.readFileAsync( mdFile, 'utf-8' )
-      // .then( Yaml.safeLoad )
-      .catch( function ( err ) {
-        console.log( 'caught', err  )
-
+    if ( config.persist ) {
+      this.persist = new HortenPersistFile({
+        mutant: this.cursor.mutant,
+        file: config.persist,
+        listening: true
       })
-      .then( function ( markdown ) {
-        if ( markdown ) {
-          control = control || {}
-          control.markdown = markdown
-        }
-      })
-      .then( function () {
-        if ( control ) {
-          res.render('page', { controlJSON: JSON.stringify( control ), layout: 'main' } )
-        } else {
-          next()
-        }
-      } )
-    })
+
+      return this.persist.open()
+    }
   }
 
-  renderPage( pageName, req, res ) {
-    res.json( pages )
-    res.render('page', { layout: 'main'} )
+  indexFile() {
+    const config = this.configuration
+        , files = config.files
+
+    const file = path.resolve.apply( path, arguments )
+
+    files.push( file )
   }
+
 }
+
+let __globalServer = null
+
+HortenServer.global = function ( open ) {
+  if ( !__globalServer ) {
+    __globalServer = new HortenServer()
+
+    if ( open )
+      setImmediate( () => __globalServer.open() )
+  }
+
+  return __globalServer
+}
+
+HortenServer.prototype.configureCLI = require('./configureCLI')
+HortenServer.prototype.openExpress = require('./openExpress')
+HortenServer.prototype.horten = H
+HortenServer.prototype.H = H
+
 
 module.exports = HortenServer

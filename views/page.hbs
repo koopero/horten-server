@@ -1,13 +1,5 @@
-<div id='page'></div>
+<div id="app"></div>
 <script>
-  let React = require('react')
-    , ReactDOM = require('react-dom')
-    , HortenControl = require('horten-control')
-    , control = {{{ controlJSON }}}
-
-  ReactDOM.render(
-    React.createElement( HortenControl, control ),
-    document.getElementById('page')
-  )
-
+__HortenPage = {{{ __HortenPage }}}
 </script>
+<script src="/horten-control/bootstrap.js"></script>

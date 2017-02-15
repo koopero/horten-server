@@ -1,0 +1,7 @@
+# written by horten-persist-file at 2017-02-02T02:17:25-08:00
+example:
+  timer:
+    status: done
+    duration: 665.4492473986274
+    trigger: 1486030644463
+    bell: 1486030645135
