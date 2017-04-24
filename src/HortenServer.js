@@ -21,9 +21,11 @@ class HortenServer extends EventEmitter {
       listen: 7004,
       persist: null,
       index: null,
+      page: {},
       load: [],
-      files: [],
-      require: []
+      require: [],
+      dirs: [],
+      files: []
     }
 
     this.cursor = new H.Cursor()
@@ -43,6 +45,8 @@ class HortenServer extends EventEmitter {
 
         if ( Array.isArray( value ) )
           value = value.concat( newValue )
+        else if ( _.isObject( value ) )
+          value = _.merge( value, newValue )
         else
           value = newValue
 
@@ -140,6 +144,7 @@ HortenServer.global = function ( open ) {
 
 HortenServer.prototype.configureCLI = require('./configureCLI')
 HortenServer.prototype.openExpress = require('./openExpress')
+HortenServer.prototype.configureNavDir = require('./configureNavDir')
 HortenServer.prototype.horten = H
 HortenServer.prototype.H = H
 

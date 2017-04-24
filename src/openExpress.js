@@ -25,11 +25,13 @@ module.exports = function openExpress() {
   app.use( '/horten-control/', express.static( HortenControl.staticDir ) )
 
   addViews()
-  const files = addFiles()
-  openPages()
-
+  addFiles()
+  addDirs()
+  addPages()
   addAPI()
   addIndex()
+
+  self.emit('openExpress', app )
 
   return
 
@@ -46,11 +48,6 @@ module.exports = function openExpress() {
     app.set('views', resolveModule('views') )
   }
 
-  function openPages() {
-    const pages = {}
-
-    self.pages = pages
-  }
 
   function addAPI() {
     app.get('/horten/get/*', ( req, res ) => {
@@ -65,12 +62,26 @@ module.exports = function openExpress() {
   }
 
   function addIndex() {
-    app.get('/index.md', ( req, res ) => res.send(
+    app.get('/default/index.md', ( req, res ) => res.send(
 `
 **Default page. Nothing here.**
 `
     ))
+    app.get('')
     app.get('/', ( req, res ) => renderPage( res ) )
+  }
+
+  function addPages() {
+    app.get('/page/*', ( req, res ) => {
+      let src = req.params[0]
+      if ( !src.startsWith('/') )
+        src = '/'+src
+      renderPage( res, src )
+    } )
+
+    _.map( config.page, ( key, src ) => {
+      app.get(`/${key}`, ( req, res ) => renderPage( res, key ) )
+    } )
   }
 
   function addFiles() {
@@ -85,19 +96,36 @@ module.exports = function openExpress() {
     }
   }
 
-  function renderPage( res, pageName ) {
-    const page = {}
-        , pages = self.pages
-        , file = pageName ? '' : '/file/index.md'
-        , content = {
-          src: file
-        }
+  function addDirs() {
+    _.uniq( config.dirs ).forEach( addDir )
 
-    page.content = content
-    // if ( !( page in pages ) )
-    //   return res.render( 'error', { layout: 'main'} )
+    function addDir( dir ) {
+      const parsed = pathlib.parse( dir )
+          , abs = pathlib.resolve( config.root, dir )
 
-    res.render( 'page', { layout: 'main',
+      let path = dir
+
+      if ( !path.startsWith('/') )
+        path = '/' + path
+
+      if ( !path.endsWith( '/' ) )
+        path += '/'
+
+
+      app.use( path, express.static( abs ) )
+    }
+  }
+
+  function renderPage( res, src ) {
+    const page = _.merge( {}, config.page )
+
+    src = src || config.index || '/default/index.md'
+
+    page.content = { src }
+
+    res.render( 'page', {
+      layout: 'main',
+      title: page.title || '',
       __HortenPage: JSON.stringify( page, null, 2 )
     } )
   }
