@@ -1,6 +1,6 @@
 {
   "name": "horten-server",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Batteries-included Horten server",
   "main": "index.js",
   "bin": {
@@ -18,8 +18,10 @@
     "express-handlebars": "^3.0.0",
     "fs-extra-promise": "^0.4.1",
     "glob-promise": "^1.0.6",
-    "horten": "^0.7.2",
+    "horten": "^0.8.2",
+    "horten-control": "^0.3.1",
     "horten-persist-file": "^0.1.0",
+    "horten-websocket": "^0.2.6",
     "js-yaml": "^3.6.1",
     "lodash": "^4.16.4"
   }

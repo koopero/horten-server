@@ -17,9 +17,19 @@ module.exports = function openExpress() {
       , cursor = self.cursor
 
   self.websocket = new Server()
-  self.websocket[ NS.verbose ] = true
+  self.websocket[ NS.verbose ] = !!config.verbose
   const app = self.app = self.websocket.middleWare()
-  self.logger = new Logger()
+
+
+  var logEvents = config.verbose ? [
+    'listen',
+    'open',
+    'close',
+    'message',
+    'send'
+  ] : config.silent ? false : true
+
+  self.logger = new Logger( logEvents )
   self.logger.target = self.websocket
 
   app.use( '/horten-control/', express.static( HortenControl.staticDir ) )
@@ -51,8 +61,7 @@ module.exports = function openExpress() {
 
   function addAPI() {
     app.get('/horten/get/*', ( req, res ) => {
-      const path = H.path.resolve( req.params[0] )
-          , data = cursor.get( path )
+      const data = cursor.get( req.params[0] )
 
       if ( data === undefined )
         res.status('204','Content === undefined').end()
@@ -117,11 +126,16 @@ module.exports = function openExpress() {
   }
 
   function renderPage( res, src ) {
-    const page = _.merge( {}, config.page )
+    const page = {}
+    _.merge( page, config.page )
 
-    src = src || config.index || '/default/index.md'
+    if ( src ) {
+      page.content = { src }
+    }
 
-    page.content = { src }
+    if ( !page.content ) {
+      page.content = { src: config.index || '/default/index.md' }
+    }
 
     res.render( 'page', {
       layout: 'main',

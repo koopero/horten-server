@@ -3,19 +3,11 @@
 */
 module.exports = function argparseArguments( parser ) {
   parser.addArgument(
-    ['--http'],
+    ['--listen'],
     {
       dest: 'listen',
       help: "Listen on port. Default: 7004",
       defaultValue: '7004'
-    }
-  )
-
-  parser.addArgument(
-    ['--data'],
-    {
-      help: "Load data from file.",
-      nargs: '+'
     }
   )
 
@@ -38,15 +30,6 @@ module.exports = function argparseArguments( parser ) {
     {
       dest: 'require',
       help: "Javascript files to require after opening.",
-      nargs: '+'
-    }
-  )
-
-  parser.addArgument(
-    ['--pages'],
-    {
-      dest: 'pageDir',
-      help: "Directories from which to load control pages.",
       nargs: '+'
     }
   )

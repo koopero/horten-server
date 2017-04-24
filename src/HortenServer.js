@@ -19,13 +19,16 @@ class HortenServer extends EventEmitter {
     this.options = opt || {}
     this.configuration = {
       listen: 7004,
+      root: null,
       persist: null,
       index: null,
       page: {},
       load: [],
       require: [],
       dirs: [],
-      files: []
+      files: [],
+      verbose: false,
+      silent: false
     }
 
     this.cursor = new H.Cursor()
@@ -52,7 +55,7 @@ class HortenServer extends EventEmitter {
 
         config[key] = value
       })
-    console.log('configure', opt, this.configuration )
+    // console.log('configure', opt, this.configuration )
   }
 
   applyOptions( opt ) {
@@ -110,7 +113,7 @@ class HortenServer extends EventEmitter {
     if ( config.persist ) {
       this.persist = new HortenPersistFile({
         mutant: this.cursor.mutant,
-        file: config.persist,
+        file: path.resolve( config.root, config.persist ),
         listening: true
       })
 
@@ -144,7 +147,6 @@ HortenServer.global = function ( open ) {
 
 HortenServer.prototype.configureCLI = require('./configureCLI')
 HortenServer.prototype.openExpress = require('./openExpress')
-HortenServer.prototype.configureNavDir = require('./configureNavDir')
 HortenServer.prototype.horten = H
 HortenServer.prototype.H = H
 
