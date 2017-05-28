@@ -113,6 +113,7 @@ class HortenServer extends EventEmitter {
     if ( config.persist ) {
       this.persist = new HortenPersistFile({
         mutant: this.cursor.mutant,
+        root: this.cursor.root,
         file: path.resolve( config.root, config.persist ),
         listening: true
       })
