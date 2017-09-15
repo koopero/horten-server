@@ -1,6 +1,6 @@
 {
   "name": "horten-server",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Batteries-included Horten server",
   "main": "index.js",
   "bin": {
@@ -13,16 +13,16 @@
   "license": "MIT",
   "dependencies": {
     "argparse": "^1.0.9",
-    "bluebird": "^3.4.6",
-    "express": "^4.14.0",
+    "bluebird": "^3.5.0",
+    "express": "^4.15.4",
     "express-handlebars": "^3.0.0",
     "fs-extra-promise": "^0.4.1",
     "glob-promise": "^1.0.6",
     "horten": "^0.8.3",
-    "horten-control": "^0.3.2",
+    "horten-control": "^0.3.3",
     "horten-persist-file": "^0.1.0",
-    "horten-websocket": "^0.2.6",
-    "js-yaml": "^3.6.1",
-    "lodash": "^4.16.4"
+    "horten-websocket": "^0.2.8",
+    "js-yaml": "^3.10.0",
+    "lodash": "^4.17.4"
   }
 }
