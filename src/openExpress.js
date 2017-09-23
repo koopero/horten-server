@@ -84,18 +84,20 @@ module.exports = function openExpress() {
 
         // try {
         var data = req.body
-        console.log( 'patch', path, data )
-
-        data = yaml.safeLoad( data )
-        data = H.util.compose( data )
-
+        try {
+          data = yaml.safeLoad( data )
+          data = H.util.compose( data )
+        } catch ( err ) {
+          res.status(400)
+          return res.end()
+        }
 
         mutant.patch( data )
 
         if ( data === undefined )
           res.status('204','Content === undefined').end()
         else
-          res.json( data )
+          res.json( mutant.get() )
       }
     )
 
