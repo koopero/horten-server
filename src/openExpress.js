@@ -1,9 +1,12 @@
 const _ = require('lodash')
+    , H = require('horten')
+    , yaml = require('js-yaml')
     , HortenWebsocket = require('horten-websocket')
     , NS = HortenWebsocket.NS
     , Logger = HortenWebsocket.Logger
     , Server = HortenWebsocket.Server
     , HortenControl = require('horten-control')
+    , bodyParser = require('body-parser')
     , express = require('express')
     , pathlib = require('path')
     , pathposix = pathlib.posix
@@ -61,13 +64,42 @@ module.exports = function openExpress() {
 
   function addAPI() {
     app.get('/horten/get/*', ( req, res ) => {
-      const data = cursor.get( req.params[0] )
+      const path = H.path.resolve( req.params[0] )
+          , data = cursor.get( path  )
 
       if ( data === undefined )
         res.status('204','Content === undefined').end()
       else
         res.json( data )
     } )
+
+    app.post(
+      '/horten/patch/*',
+      bodyParser.text( {
+        type: '*/*'
+      }),
+      ( req, res ) => {
+        const path = H.path.resolve( req.params[0] )
+            , mutant = self.cursor.mutant.walk( path )
+
+        // try {
+        var data = req.body
+        console.log( 'patch', path, data )
+
+        data = yaml.safeLoad( data )
+        data = H.util.compose( data )
+
+
+        mutant.patch( data )
+
+        if ( data === undefined )
+          res.status('204','Content === undefined').end()
+        else
+          res.json( data )
+      }
+    )
+
+
   }
 
   function addIndex() {
