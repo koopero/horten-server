@@ -1,13 +1,8 @@
-#!/bin/sh
-':' //; exec "$(command -v nodejs || command -v node)" "$0" "$@"
-
-
-
-
-
+#!/usr/bin/env node
 
 const HortenServer = require('../index')
-    , server = new HortenServer()
+const server = new HortenServer()
+
 server.configureCLI()
 .open()
 .then( () => {

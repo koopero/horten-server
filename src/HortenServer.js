@@ -1,16 +1,11 @@
 const _ = require('lodash')
-    , H = require('horten')
-    , Promise = require('bluebird')
-    , EventEmitter = require('events')
-    , fs = require('fs-extra-promise')
-    , path = require('path')
-    , Yaml = require('js-yaml')
+const H = require('horten')
+const Promise = require('bluebird')
+const EventEmitter = require('events')
+const path = require('path')
 
 const HortenPersistFile = require('horten-persist-file')
-
-
 const resolveModule = require('path').resolve.bind( null, __dirname, '..')
-
 
 class HortenServer extends EventEmitter {
 
@@ -25,9 +20,9 @@ class HortenServer extends EventEmitter {
       page: {},
       load: [],
       require: [],
-      dirs: [],
+      dirs: ['.'],
       files: [],
-      verbose: false,
+      verbose: true,
       silent: false
     }
 

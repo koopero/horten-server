@@ -1,12 +1,11 @@
 module.exports = function configureCLI() {
   const _ = require('lodash')
-      , yaml = require('js-yaml')
-      , argparse = require('argparse')
-      , pkg = require('../package.json')
-      , parser = new argparse.ArgumentParser({
-          version: pkg.version,
-          addHelp: true,
-        })
+  const argparse = require('argparse')
+  const pkg = require('../package.json')
+  const parser = new argparse.ArgumentParser({
+    version: pkg.version,
+    addHelp: true,
+  })
 
   require('./argparseArguments')( parser )
 

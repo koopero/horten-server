@@ -1,23 +1,24 @@
 const _ = require('lodash')
-    , H = require('horten')
-    , yaml = require('js-yaml')
-    , HortenWebsocket = require('horten-websocket')
-    , NS = HortenWebsocket.NS
-    , Logger = HortenWebsocket.Logger
-    , Server = HortenWebsocket.Server
-    , HortenControl = require('horten-control')
-    , bodyParser = require('body-parser')
-    , express = require('express')
-    , pathlib = require('path')
-    , pathposix = pathlib.posix
+const H = require('horten')
+const yaml = require('js-yaml')
+const HortenWebsocket = require('horten-websocket')
+const NS = HortenWebsocket.NS
+const Logger = HortenWebsocket.Logger
+const Server = HortenWebsocket.Server
+const HortenControl = require('horten-control')
+const bodyParser = require('body-parser')
+const express = require('express')
+const fs = require('fs-extra')
+const pathlib = require('path')
+const pathposix = pathlib.posix
 
 const resolveModule = pathlib.resolve.bind( null, __dirname, '..')
 
 
 module.exports = function openExpress() {
   const self = this
-      , config = self.configuration
-      , cursor = self.cursor
+  const config = self.configuration
+  const cursor = self.cursor
 
   self.websocket = new Server()
   self.websocket[ NS.verbose ] = !!config.verbose
@@ -110,7 +111,6 @@ module.exports = function openExpress() {
 **Default page. Nothing here.**
 `
     ))
-    app.get('')
     app.get('/', ( req, res ) => renderPage( res ) )
   }
 
@@ -143,10 +143,12 @@ module.exports = function openExpress() {
     _.uniq( config.dirs ).forEach( addDir )
 
     function addDir( dir ) {
-      const parsed = pathlib.parse( dir )
-          , abs = pathlib.resolve( config.root, dir )
+      const abs = pathlib.resolve( config.root, dir )
 
       let path = dir
+
+      if ( path == '.' )
+        path = '/'
 
       if ( !path.startsWith('/') )
         path = '/' + path
@@ -154,6 +156,7 @@ module.exports = function openExpress() {
       if ( !path.endsWith( '/' ) )
         path += '/'
 
+      console.log('addDir', { dir, abs, path })
 
       app.use( path, express.static( abs ) )
     }
@@ -163,18 +166,22 @@ module.exports = function openExpress() {
     const page = {}
     _.merge( page, config.page )
 
+    let indexRegion = 'content'
+
     if ( src ) {
-      page.content = { src }
+      page[indexRegion] = src
     }
 
-    if ( !page.content ) {
-      page.content = { src: config.index || '/default/index.md' }
+    if ( !page[indexRegion] ) {
+      page[indexRegion] = config.index || findIndexURL()
     }
 
-    res.render( 'page', {
-      layout: 'main',
-      title: page.title || '',
-      __HortenPage: JSON.stringify( page, null, 2 )
-    } )
+    let html = HortenControl.renderPageHTML( page )
+    res.send( html )
+  }
+
+  function findIndexURL() {
+    let test = ['index.md','index.yaml']
+    return _.find( test, path => fs.existsSync( pathlib.resolve( config.root, path ) ) )
   }
 }
