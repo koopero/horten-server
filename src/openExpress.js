@@ -11,6 +11,7 @@ const express = require('express')
 const fs = require('fs-extra')
 const pathlib = require('path')
 const pathposix = pathlib.posix
+const livereload = require('easy-livereload')
 
 const resolveModule = pathlib.resolve.bind( null, __dirname, '..')
 
@@ -24,6 +25,7 @@ module.exports = function openExpress() {
   self.websocket[ NS.verbose ] = !!config.verbose
   const app = self.app = self.websocket.middleWare()
 
+  
 
   var logEvents = config.verbose ? [
     'listen',
@@ -38,6 +40,7 @@ module.exports = function openExpress() {
 
   app.use( '/horten-control/', express.static( HortenControl.staticDir ) )
 
+  addLivereload()
   addViews()
   addFiles()
   addDirs()
@@ -49,8 +52,13 @@ module.exports = function openExpress() {
 
   return
 
-  function addViews() {
+  function addLivereload() {
+    let watchDirs = [ HortenControl.staticDir ]
+    const config = { app, watchDirs }
+    app.use( livereload( config ) )
+  }
 
+  function addViews() {
     const exphbs = require('express-handlebars')
     const hbs = exphbs.create({
       extname: '.hbs',
