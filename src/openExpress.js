@@ -40,7 +40,7 @@ module.exports = function openExpress() {
 
   app.use( '/horten-control/', express.static( HortenControl.staticDir ) )
 
-  addLivereload()
+  // addLivereload()
   addViews()
   addFiles()
   addDirs()
