@@ -13,19 +13,21 @@
   "license": "MIT",
   "dependencies": {
     "argparse": "^1.0.10",
-    "bluebird": "^3.5.3",
-    "body-parser": "^1.18.2",
+    "bluebird": "^3.5.5",
+    "body-parser": "^1.19.0",
     "easy-livereload": "^1.3.2",
-    "express": "^4.16.4",
-    "express-handlebars": "^3.0.0",
-    "fs-extra": "^7.0.1",
-    "glob": "^7.1.3",
+    "express": "^4.17.1",
+    "express-fileupload": "^1.1.6-alpha.4",
+    "express-handlebars": "3.1.0",
+    "fs-extra": "^8.1.0",
+    "glob": "^7.1.4",
     "glob-promise": "^3.4.0",
     "horten": "^0.9.0",
     "horten-control": "^0.3.x",
-    "horten-persist-file": "^0.1.2",
+    "horten-persist-file": "^0.2.0",
     "horten-websocket": "^0.2.8",
-    "js-yaml": "^3.12.1",
-    "lodash": "^4.17.11"
+    "js-yaml": "^3.13.1",
+    "lodash": "^4.17.15",
+    "unique-file-name": "1.0.1"
   }
 }

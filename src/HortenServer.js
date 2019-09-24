@@ -23,7 +23,8 @@ class HortenServer extends EventEmitter {
       dirs: ['.'],
       files: [],
       verbose: true,
-      silent: false
+      silent: false,
+      upload: {},
     }
 
     this.cursor = new H.Cursor()

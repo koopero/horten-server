@@ -12,6 +12,8 @@ const fs = require('fs-extra')
 const pathlib = require('path')
 const pathposix = pathlib.posix
 const livereload = require('easy-livereload')
+const UNF = require('unique-file-name')
+const fileUpload = require('express-fileupload')
 
 const resolveModule = pathlib.resolve.bind( null, __dirname, '..')
 
@@ -40,10 +42,11 @@ module.exports = function openExpress() {
 
   app.use( '/horten-control/', express.static( HortenControl.staticDir ) )
 
-  // addLivereload()
+  addLivereload()
   addViews()
   addFiles()
   addDirs()
+  addUpload()
   addPages()
   addAPI()
   addIndex()
@@ -51,6 +54,8 @@ module.exports = function openExpress() {
   self.emit('openExpress', app )
 
   return
+
+
 
   function addLivereload() {
     let watchDirs = [ HortenControl.staticDir ]
@@ -164,10 +169,45 @@ module.exports = function openExpress() {
       if ( !path.endsWith( '/' ) )
         path += '/'
 
-      console.log('addDir', { dir, abs, path })
+      // console.log('addDir', { dir, abs, path })
 
       app.use( path, express.static( abs ) )
     }
+  }
+
+  function addUpload() {
+    const format = '%4Y-%M-%D/%24b_%6r%8e'
+    const namer = UNF( {
+      format,
+      dir: pathlib.resolve( config.root, 'data/upload' )
+    })
+    app.use(fileUpload({}))
+    app.post('/upload', async ( req, res ) => {
+      let errors = []
+      let files = await Promise.all( _.map( req.files, async ( upload, index ) => {
+        
+        let file = await namer( upload.name, index )
+        let abs = file
+        let prefix = file.substr( 0, config.root.length )
+        file = file.substr( config.root.length )
+        file = _.trimStart( file, '/\\')
+        let dir = pathlib.dirname( abs )
+        let name = upload.name
+        
+        await fs.outputFile( abs, upload.data )
+
+        return { file, name }
+
+        console.log('FILE', { file, name, key } )
+      }) )
+      files = _.filter( files )
+
+      if (files.length == 0) {
+        return res.status(400).send('No files were uploaded.');
+      }
+
+      res.send( { files } )
+    })
   }
 
   function renderPage( res, src ) {
