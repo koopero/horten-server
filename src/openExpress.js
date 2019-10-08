@@ -14,7 +14,7 @@ const pathposix = pathlib.posix
 const livereload = require('easy-livereload')
 const UNF = require('unique-file-name')
 const fileUpload = require('express-fileupload')
-
+const exec = require('child-process-promise').exec
 const resolveModule = pathlib.resolve.bind( null, __dirname, '..')
 
 
@@ -176,16 +176,18 @@ module.exports = function openExpress() {
   }
 
   function addUpload() {
-    const format = '%4Y-%M-%D/%24b_%6r%8e'
+    const format = _.get( config, 'upload.pattern', '%4Y-%M-%D/%24b_%6r%8e' )
     const namer = UNF( {
       format,
       dir: pathlib.resolve( config.root, 'data/upload' )
     })
-    app.use(fileUpload({}))
+    const uploadCursor = self.cursor.root.walk('upload').cursor()
+
+
+    app.use('/upload',fileUpload({}))
     app.post('/upload', async ( req, res ) => {
       let errors = []
       let files = await Promise.all( _.map( req.files, async ( upload, index ) => {
-        
         let file = await namer( upload.name, index )
         let abs = file
         let prefix = file.substr( 0, config.root.length )
@@ -193,12 +195,21 @@ module.exports = function openExpress() {
         file = _.trimStart( file, '/\\')
         let dir = pathlib.dirname( abs )
         let name = upload.name
+        let key = pathlib.basename( file )
+        let src = file
+        let data = { file, src, name }
         
+        uploadCursor.patch( data, key )
+
+
         await fs.outputFile( abs, upload.data )
+
+        // Total Hack!!! TODO fix.
+        await exec(`mogrify -auto-orient -resize 2048x2048\\> "${abs}"`)
+        .catch( () => {} )
 
         return { file, name }
 
-        console.log('FILE', { file, name, key } )
       }) )
       files = _.filter( files )
 
